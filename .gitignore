@@ -31,6 +31,11 @@ speed-measure-plugin.json
 !.vscode/extensions.json
 .history/*
 
+# Cordova
+/platforms
+/plugins
+/www
+
 # misc
 /.sass-cache
 /connect.lock

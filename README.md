@@ -1,27 +1,157 @@
 # AngularCordovaSample
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 7.3.8.
+Angular + Cordovaのサンプル
 
-## Development server
+## プロジェクトの作り方
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+Angular CLIとApache Cordovaをグローバルインストールする。自分はYarnを用いているのでYarnは事前にインストールしておく。
 
-## Code scaffolding
+```bash
+yarn global add @angular/cli cordova
+ng config -g cli.packageManager yarn
+```
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+Cordova CLIでプロジェクトを作成する。
+```bash
+cordova create <path>
+```
 
-## Build
+対象のプラットフォームを追加する。
+```bash
+cd <path>
+cordova platform add <platform name>
+```
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+Angularのプロジェクトとマージするため、以下を実行する。
 
-## Running unit tests
+```bash
+# 上書きされないよう退避
+mv package.json package.json
+# Yarnで再インストールするため、一旦削除する。
+rm -rf node_modules
+rm package-lock.json
+```
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Angular CLIで同一フォルダにプロジェクトを作成する。
 
-## Running end-to-end tests
+```bash
+cd ../
+ng new <path> --skip-install --style=scss --routing
+# 色々警告出るが気にしない
+```
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+`angular.json`のビルド出力パスを`www`に変更する。
 
-## Further help
+```json
+{
+  "projects": {
+    "angular-cordova-sample": {
+      "architect": {
+        "build": {
+          "options": {
+            "outputPath": "www",
+          }
+        }
+      }
+    }
+  }
+}
+```
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+退避しておいた`package.json.bk`を`package.json`にマージする。
+`dependencies`, `devDependencies`, `cordova`さえマージしておけば良いと思う。
+
+```json
+{
+  "dependencies": {
+    "@angular/animations": "~7.2.0",
+    "@angular/common": "~7.2.0",
+    "@angular/compiler": "~7.2.0",
+    ...
+    "cordova-android": "^8.0.0",
+    "cordova-electron": "^1.0.2",
+    "cordova-ios": "^5.0.0"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "~0.13.0",
+    "@angular/cli": "~7.3.8",
+    "@angular/compiler-cli": "~7.2.0",
+    ...
+    "cordova-plugin-whitelist": "^1.3.3"
+  },
+  "cordova": {
+    "plugins": {
+      "cordova-plugin-whitelist": {}
+    },
+    "platforms": [
+      "electron",
+      "ios",
+      "android"
+    ]
+  }
+}
+```
+
+`src/index.html`のbaseタグを変更する。
+
+```html
+<base href="./">
+```
+
+Yarnで再インストールする。
+
+```bash
+cd <path>
+yarn install
+```
+
+## Angular開発
+
+Cordova上ではdev serverにアクセスできないので、通常のAngularと同様に`ng serve`で開発する。
+
+```bash
+ng serve
+```
+
+## Cordova開発
+
+Angularをビルドし、Cordovaでそこにアクセスする。
+
+```bash
+ng build
+cordova run <platform name>
+```
+
+npm-scriptsに設定しておくと楽。
+
+```json
+{
+  "scripts":{
+    "run-electron": "ng build && cordova run electron"
+  }
+}
+```
+
+## ビルド
+
+```bash
+ng build
+cordova build <platform name>
+```
+
+## Git
+
+`platforms`, `plugins`は`config.xml`から再取得可能なので、`.gitignore`に設定してGitの対象から外す。
+
+```
+# Cordova
+/platforms
+/plugins
+/www
+```
+
+以下のコマンドで再取得する。
+
+```bash
+cordova prepare
+```
